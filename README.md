@@ -24,6 +24,16 @@ personales y de ubicación, y elige la marca a la que quiere vincularse.
 > Proyecto académico construido por etapas. Las seis etapas están completas: estructura del
 > proyecto, modelo de datos, API REST, formulario en React y documentación de entrega.
 
+**La API se puede explorar y probar desde el navegador.** Una vez levantado el backend,
+<http://localhost:8080/swagger-ui.html> muestra todos los endpoints con sus datos de entrada,
+sus respuestas y un botón para ejecutarlos — sin `curl` ni Postman. Los detalles están en
+[Documentación interactiva (Swagger UI)](#documentación-interactiva-swagger-ui); cómo levantar
+el backend, en [Puesta en marcha](#puesta-en-marcha).
+
+El backend trae **23 pruebas automatizadas** que corren sobre una base en memoria, así que
+`mvn test` funciona sin necesidad de instalar PostgreSQL: ver
+[Pruebas automatizadas](#pruebas-automatizadas).
+
 ---
 
 ## Stack tecnológico
