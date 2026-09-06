@@ -2,7 +2,8 @@
 
 Aplicación web para inscribir clientes a un programa de fidelidad compartido por
 varias marcas de un mismo grupo. El usuario completa un formulario con sus datos
-personales y de ubicación, y elige la marca a la que quiere vincularse.
+personales y de ubicación, y elige la marca a la que quiere vincularse. Una segunda vista
+lista los inscritos, con filtro por marca y paginación.
 
 **Marcas participantes:** Americanino, American Eagle, Chevignon, Esprit, Naf Naf y Rifle.
 
@@ -30,7 +31,7 @@ sus respuestas y un botón para ejecutarlos — sin `curl` ni Postman. Los detal
 [Documentación interactiva (Swagger UI)](#documentación-interactiva-swagger-ui); cómo levantar
 el backend, en [Puesta en marcha](#puesta-en-marcha).
 
-El backend trae **23 pruebas automatizadas** que corren sobre una base en memoria, así que
+El backend trae **32 pruebas automatizadas** que corren sobre una base en memoria, así que
 `mvn test` funciona sin necesidad de instalar PostgreSQL: ver
 [Pruebas automatizadas](#pruebas-automatizadas).
 
@@ -77,7 +78,7 @@ El backend trae **23 pruebas automatizadas** que corren sobre una base en memori
     ├── .env.example                      # Plantilla; el .env no se versiona
     └── src/
         ├── api/                          # Cliente axios y llamadas al backend
-        ├── components/                   # FormularioInscripcion
+        ├── components/                   # FormularioInscripcion y ListaInscritos
         ├── utils/                        # Validación de los campos
         ├── pages/                        # Vistas completas (aún sin usar)
         └── styles.css                    # Hoja de estilos única
@@ -136,6 +137,26 @@ Sería más corto devolver la entidad `Cliente` desde el controlador, pero traer
 problemas: expondría el esquema de la base en la API, arrastraría las relaciones perezosas de
 JPA (que fallan al serializarse fuera de la transacción), y cualquier cambio en una columna
 rompería a quien consume la API. Los DTO cortan esa dependencia.
+
+### El problema N+1 en el listado de inscritos
+
+Todas las relaciones de `Cliente` son `LAZY`, así que una consulta normal trae solo la fila del
+cliente. Al armar el DTO se recorre `ciudad → departamento → país`, más el tipo de documento y
+la marca, y **cada acceso dispara su propia consulta**.
+
+Con un cliente suelto no se nota. Con una página entera sí: es el clásico problema **N+1**.
+
+La solución es `@EntityGraph` en `ClienteRepository`, que le pide a Hibernate traer esas
+relaciones en la misma consulta, mediante JOIN. La diferencia está **medida** en
+`ClienteRepositoryTest.noHayConsultasNMasUno`, con diez clientes en diez ciudades distintas:
+
+| | Consultas ejecutadas |
+|---|---|
+| Sin `@EntityGraph` | **34** |
+| Con `@EntityGraph` | **2** (los datos + el conteo de la paginación) |
+
+Esa prueba falla si alguien quita la anotación, así que la mejora no se puede perder por
+descuido.
 
 ---
 
@@ -427,7 +448,31 @@ elegir un departamento sus ciudades.
 | Método | Endpoint | Descripción |
 |---|---|---|
 | `POST` | `/api/clientes` | Registra un cliente. Devuelve `201` con la cabecera `Location` |
+| `GET` | `/api/clientes` | Lista los inscritos, paginados. Admite `marcaId`, `page`, `size` y `sort` |
 | `GET` | `/api/clientes/{id}` | Consulta un cliente |
+
+**Consulta de inscritos:**
+
+```bash
+# Los 20 más recientes
+curl "http://localhost:8080/api/clientes"
+
+# Segunda página de 10, solo de la marca 3
+curl "http://localhost:8080/api/clientes?marcaId=3&page=1&size=10"
+```
+
+La respuesta es una página de Spring Data: además de `content` con los registros, trae
+`totalElements` y `totalPages`, que es lo que el frontend necesita para dibujar los botones de
+paginación.
+
+```json
+{
+  "content": [ { "id": 1, "nombres": "Ana María", "marca": { "nombre": "Chevignon" } } ],
+  "number": 0,
+  "totalPages": 2,
+  "totalElements": 14
+}
+```
 
 **Petición de registro:**
 
@@ -650,7 +695,7 @@ mvn test
 sustituye la base por **H2 en memoria**: se crea un esquema limpio al empezar y se destruye al
 terminar. Por eso `mvn package` funciona en una máquina recién clonada, sin configurar nada.
 
-Son 23 pruebas repartidas en tres niveles, cada uno con un propósito distinto:
+Son 32 pruebas repartidas en tres niveles, cada uno con un propósito distinto:
 
 | Clase | Tipo | Qué comprueba |
 |---|---|---|
@@ -672,6 +717,8 @@ Las pruebas cubren las decisiones de negocio que no son evidentes leyendo el có
   defensa si dos peticiones simultáneas superan a la vez la comprobación previa.
 - `findByTipoIdentificacionAndNumeroIdentificacion` devuelve `List` y no `Optional`,
   precisamente porque una persona puede estar inscrita en varias marcas.
+- El listado paginado **no cae en el problema N+1**: la prueba cuenta las consultas que
+  ejecuta Hibernate y falla si alguien quita el `@EntityGraph` del repositorio.
 
 ---
 
@@ -757,3 +804,13 @@ git grep -n "password" -- backend/src/main/resources/
       validación en el cliente y mapeo de los errores del backend.
 - [x] **Etapa 6** — Estados de carga, dump de la base de datos, plantilla de configuración,
       README con las instrucciones de instalación y publicación del repositorio en GitHub.
+
+### Mejoras posteriores a la entrega
+
+Añadidas después de cerrar las seis etapas, por encima de lo que pedía el enunciado:
+
+- [x] **Pruebas automatizadas** del servicio, el controlador y el repositorio, sobre H2 en
+      memoria, de modo que `mvn package` funcione sin PostgreSQL instalado.
+- [x] **Documentación interactiva** de la API con Swagger UI, generada desde el código.
+- [x] **Consulta de inscritos**: endpoint paginado con filtro por marca y su vista en React,
+      resolviendo el problema N+1 con `@EntityGraph`.
