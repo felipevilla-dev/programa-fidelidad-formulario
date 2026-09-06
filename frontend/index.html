@@ -5,6 +5,28 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Programa de Fidelidad — Inscripción</title>
+    <!--
+      Fija el tema ANTES de que se pinte la página. Si esto se hiciera desde React,
+      el navegador alcanzaría a dibujar un fotograma en claro antes de que el
+      componente se monte: el conocido destello blanco al abrir en modo oscuro.
+
+      Sin preferencia guardada se usa la del sistema operativo, así que la primera
+      visita ya respeta cómo tiene configurado el equipo cada persona.
+    -->
+    <script>
+      (function () {
+        try {
+          var guardado = localStorage.getItem('tema')
+          var delSistema = window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'oscuro'
+            : 'claro'
+          document.documentElement.dataset.tema = guardado || delSistema
+        } catch (e) {
+          // Navegación privada o almacenamiento bloqueado: el tema claro sirve de refugio.
+          document.documentElement.dataset.tema = 'claro'
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

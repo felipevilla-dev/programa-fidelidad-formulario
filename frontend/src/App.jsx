@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import BotonTema from './components/BotonTema'
 import FormularioInscripcion from './components/FormularioInscripcion'
 import ListaInscritos from './components/ListaInscritos'
 
@@ -25,9 +26,12 @@ export default function App() {
   return (
     <div className="pagina">
       <header className="cabecera">
-        <h1 className="cabecera__titulo">
-          {esFormulario ? 'Inscríbete al programa de fidelidad' : 'Clientes inscritos'}
-        </h1>
+        <div className="cabecera__fila">
+          <h1 className="cabecera__titulo">
+            {esFormulario ? 'Inscríbete al programa de fidelidad' : 'Clientes inscritos'}
+          </h1>
+          <BotonTema />
+        </div>
         <p className="cabecera__texto">
           {esFormulario
             ? 'Un solo registro te da acceso a los beneficios de Americanino, American Eagle, Chevignon, Esprit, Naf Naf y Rifle. Elige con cuál quieres empezar.'
