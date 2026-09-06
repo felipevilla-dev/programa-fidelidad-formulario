@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fidelidad.programa.dto.DepartamentoDTO;
 import com.fidelidad.programa.service.DepartamentoService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -19,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/departamentos")
 @RequiredArgsConstructor
+@Tag(name = "Catálogo: departamentos")
 public class DepartamentoController {
 
     private final DepartamentoService departamentoService;
@@ -37,6 +40,8 @@ public class DepartamentoController {
      * @param paisId filtro opcional por país
      * @return 200 OK con la lista de departamentos
      */
+    @Operation(summary = "Listar departamentos",
+            description = "Con el parámetro paisId devuelve solo los de ese país; sin él, el catálogo completo.")
     @GetMapping
     public ResponseEntity<List<DepartamentoDTO>> listar(
             @RequestParam(required = false) Long paisId) {

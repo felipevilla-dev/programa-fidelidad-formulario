@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fidelidad.programa.dto.PaisDTO;
 import com.fidelidad.programa.service.PaisService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -25,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/paises")
 @RequiredArgsConstructor
+@Tag(name = "Catálogo: países")
 public class PaisController {
 
     private final PaisService paisService;
@@ -34,6 +37,8 @@ public class PaisController {
      *
      * @return 200 OK con la lista de países
      */
+    @Operation(summary = "Listar los países",
+            description = "Alimenta el primer desplegable del formulario.")
     @GetMapping
     public ResponseEntity<List<PaisDTO>> listar() {
         return ResponseEntity.ok(paisService.findAll());

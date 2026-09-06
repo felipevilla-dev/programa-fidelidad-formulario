@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fidelidad.programa.dto.TipoIdentificacionDTO;
 import com.fidelidad.programa.service.TipoIdentificacionService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/tipos-identificacion")
 @RequiredArgsConstructor
+@Tag(name = "Catálogo: tipos de identificación")
 public class TipoIdentificacionController {
 
     private final TipoIdentificacionService tipoIdentificacionService;
@@ -25,6 +28,8 @@ public class TipoIdentificacionController {
     /**
      * @return 200 OK con los tipos de documento, ordenados por código
      */
+    @Operation(summary = "Listar los tipos de documento",
+            description = "El código PA (pasaporte) es el único que admite letras en el número.")
     @GetMapping
     public ResponseEntity<List<TipoIdentificacionDTO>> listar() {
         return ResponseEntity.ok(tipoIdentificacionService.findAll());

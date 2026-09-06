@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fidelidad.programa.dto.CiudadDTO;
 import com.fidelidad.programa.service.CiudadService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -19,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/ciudades")
 @RequiredArgsConstructor
+@Tag(name = "Catálogo: ciudades")
 public class CiudadController {
 
     private final CiudadService ciudadService;
@@ -33,6 +36,8 @@ public class CiudadController {
      * @param departamentoId filtro opcional por departamento
      * @return 200 OK con la lista de ciudades
      */
+    @Operation(summary = "Listar ciudades",
+            description = "Con el parámetro departamentoId devuelve solo las de ese departamento; sin él, el catálogo completo.")
     @GetMapping
     public ResponseEntity<List<CiudadDTO>> listar(
             @RequestParam(required = false) Long departamentoId) {

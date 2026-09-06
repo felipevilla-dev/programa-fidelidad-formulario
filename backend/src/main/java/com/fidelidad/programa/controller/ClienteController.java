@@ -14,6 +14,11 @@ import com.fidelidad.programa.dto.ClienteRegistroDTO;
 import com.fidelidad.programa.dto.ClienteResponseDTO;
 import com.fidelidad.programa.service.ClienteService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +41,8 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/clientes")
 @RequiredArgsConstructor
+@Tag(name = "Clientes",
+        description = "Inscripción de clientes al programa de fidelidad")
 public class ClienteController {
 
     private final ClienteService clienteService;
@@ -60,6 +67,27 @@ public class ClienteController {
      * @param dto datos del formulario
      * @return 201 Created con el cliente registrado y la cabecera Location
      */
+    @Operation(
+            summary = "Registrar un cliente",
+            description = """
+                    Inscribe a una persona en una de las seis marcas del grupo.
+
+                    Una misma persona puede inscribirse en varias marcas, pero no dos \
+                    veces en la misma. El número de documento solo admite dígitos, \
+                    salvo en el pasaporte (código PA), que también acepta letras.""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201",
+                    description = "Cliente registrado. La cabecera Location apunta al recurso"),
+            @ApiResponse(responseCode = "400",
+                    description = "Datos inválidos. El campo 'errores' detalla qué falló",
+                    content = @Content()),
+            @ApiResponse(responseCode = "404",
+                    description = "El tipo de documento, la ciudad o la marca no existen",
+                    content = @Content()),
+            @ApiResponse(responseCode = "409",
+                    description = "El documento ya está inscrito en esa marca",
+                    content = @Content())
+    })
     @PostMapping
     public ResponseEntity<ClienteResponseDTO> registrar(
             @Valid @RequestBody ClienteRegistroDTO dto) {
@@ -80,6 +108,14 @@ public class ClienteController {
      *
      * @return 200 OK con el cliente
      */
+    @Operation(
+            summary = "Consultar un cliente por su id",
+            description = "Es el recurso al que apunta la cabecera Location devuelta por el POST.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Cliente encontrado"),
+            @ApiResponse(responseCode = "404", description = "No existe un cliente con ese id",
+                    content = @Content())
+    })
     @GetMapping("/{id}")
     public ResponseEntity<ClienteResponseDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(clienteService.buscarPorId(id));
