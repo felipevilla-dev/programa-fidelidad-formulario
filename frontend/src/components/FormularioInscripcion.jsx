@@ -13,6 +13,7 @@ import {
   filtrarNumeroIdentificacion,
   validarFormulario,
 } from '../utils/validacion'
+import TarjetaInscripcion from './TarjetaInscripcion'
 
 /**
  * Valores iniciales del formulario.
@@ -54,6 +55,10 @@ export default function FormularioInscripcion() {
   // idle | enviando | exito | error
   const [estadoEnvio, setEstadoEnvio] = useState('idle')
   const [mensajeGeneral, setMensajeGeneral] = useState('')
+
+  // El cliente que devolvió el backend tras un registro correcto. Mientras exista,
+  // se muestra el carnet en lugar del formulario.
+  const [clienteInscrito, setClienteInscrito] = useState(null)
 
   // Una bandera por petición. Se podría deducir el estado mirando si la lista está
   // vacía, pero sería ambiguo: una lista vacía también puede significar que la
@@ -245,9 +250,9 @@ export default function FormularioInscripcion() {
       const cliente = await registrarCliente(payload)
 
       setEstadoEnvio('exito')
-      setMensajeGeneral(
-        `¡Listo, ${cliente.nombres}! Quedaste inscrito en el programa de fidelidad con ${cliente.marca.nombre}.`,
-      )
+      setMensajeGeneral('')
+      // Guardar el cliente cambia la vista al carnet; el formulario deja de verse.
+      setClienteInscrito(cliente)
       // Se limpia el formulario para permitir una inscripción nueva.
       setFormulario(FORMULARIO_VACIO)
       setDepartamentos([])
@@ -301,6 +306,19 @@ export default function FormularioInscripcion() {
     }
 
     setMensajeGeneral('Ocurrió un error al procesar la inscripción. Inténtalo de nuevo más tarde.')
+  }
+
+  /** Vuelve al formulario, ya vacío, para inscribir a alguien más. */
+  function inscribirOtro() {
+    setClienteInscrito(null)
+    setEstadoEnvio('idle')
+    setErrores({})
+  }
+
+  // Tras un registro correcto, el carnet ocupa el lugar del formulario: en ese
+  // momento lo único relevante es lo que acaba de pasar.
+  if (clienteInscrito) {
+    return <TarjetaInscripcion cliente={clienteInscrito} alInscribirOtro={inscribirOtro} />
   }
 
   return (
