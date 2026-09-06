@@ -58,5 +58,7 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
-#-----------------------------------------------------
+# ---------------------------------------------------------------------------
+# Configuracion local con credenciales reales (perfil "local" de Spring Boot)
+# ---------------------------------------------------------------------------
 application-local.properties
