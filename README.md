@@ -3,7 +3,8 @@
 Aplicación web para inscribir clientes a un programa de fidelidad compartido por
 varias marcas de un mismo grupo. El usuario completa un formulario con sus datos
 personales y de ubicación, y elige la marca a la que quiere vincularse. Una segunda vista
-lista los inscritos, con filtro por marca y paginación.
+lista los inscritos, con filtro por marca y paginación. La interfaz tiene tema claro y
+oscuro, con un botón para cambiarlo.
 
 **Marcas participantes:** Americanino, American Eagle, Chevignon, Esprit, Naf Naf y Rifle.
 
@@ -78,7 +79,7 @@ El backend trae **32 pruebas automatizadas** que corren sobre una base en memori
     ├── .env.example                      # Plantilla; el .env no se versiona
     └── src/
         ├── api/                          # Cliente axios y llamadas al backend
-        ├── components/                   # FormularioInscripcion y ListaInscritos
+        ├── components/                   # Formulario, lista, carnet y boton de tema
         ├── utils/                        # Validación de los campos
         ├── pages/                        # Vistas completas (aún sin usar)
         └── styles.css                    # Hoja de estilos única
@@ -681,6 +682,29 @@ HTTP  ->  controller  ->  service  ->  repository  ->  PostgreSQL
           GlobalExceptionHandler (@RestControllerAdvice) traduce
           cada excepción al código HTTP, una sola vez para toda la API
 ```
+
+---
+
+## Tema claro y oscuro
+
+La interfaz respeta la preferencia del sistema operativo en la primera visita, y el botón de la
+cabecera permite cambiarla. La elección manual manda sobre la del sistema y se guarda en
+`localStorage`, así que sobrevive a recargar la página.
+
+Tres detalles que no se ven pero se notan:
+
+- **No hay destello blanco al abrir en oscuro.** Un script minúsculo en `index.html` fija el
+  tema *antes* del primer pintado. Si eso se hiciera desde React, el navegador alcanzaría a
+  dibujar un fotograma en claro.
+- **Los controles nativos también cambian.** La propiedad `color-scheme` hace que los
+  desplegables y el selector de fecha del navegador se dibujen oscuros; sin ella se quedarían
+  blancos en medio de la página.
+- **Si `localStorage` está bloqueado** —navegación privada— el botón sigue funcionando durante
+  la sesión: solo se pierde el recuerdo al recargar.
+
+La paleta oscura no es un gris genérico: los fondos conservan el matiz verde del acento y el
+propio acento sube de luminosidad para seguir siendo legible. Al estar todo el color en
+variables CSS, añadir el tema fue redefinir esas variables, sin tocar ni un componente.
 
 ---
 
