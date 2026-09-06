@@ -33,6 +33,8 @@ personales y de ubicación, y elige la marca a la que quiere vincularse.
 | Backend | Java 17 · Spring Boot 3.5.16 · Maven |
 | Persistencia | Spring Data JPA (Hibernate) · PostgreSQL |
 | Utilidades backend | Bean Validation · Lombok · Spring Boot DevTools |
+| Documentación de la API | springdoc-openapi (Swagger UI) |
+| Pruebas | JUnit 5 · Mockito · H2 en memoria |
 | Frontend | React 19 · Vite |
 
 ---
@@ -56,7 +58,7 @@ personales y de ubicación, y elige la marca a la que quiere vincularse.
 │       │   ├── service/                  # Lógica de negocio
 │       │   ├── validation/               # Validaciones y manejo de excepciones
 │       │   ├── controller/               # Endpoints REST (uno por recurso)
-│       │   └── config/                   # Infraestructura (CORS)
+│       │   └── config/                   # Infraestructura (CORS y OpenAPI)
 │       └── resources/
 │           ├── application.properties            # Configuración real
 │           ├── application-example.properties    # Plantilla de referencia
@@ -105,7 +107,7 @@ las atraviesa siempre en el mismo orden, y cada capa solo habla con la siguiente
 
    dto ......... objetos que viajan por la API, en los dos sentidos
    validation .. reglas de validación y traducción de errores a HTTP
-   config ...... infraestructura (CORS)
+   config ...... infraestructura (CORS y documentación OpenAPI)
 ```
 
 | Capa | Qué contiene | Por qué existe |
@@ -116,7 +118,7 @@ las atraviesa siempre en el mismo orden, y cada capa solo habla con la siguiente
 | `service` | `ClienteService` y los cinco servicios de catálogo | La lógica de negocio, y la transacción dentro de la cual se navegan las relaciones perezosas |
 | `validation` | Excepciones propias, `ErrorResponseDTO` y `GlobalExceptionHandler` | Reúne en un solo sitio la traducción de excepción a código HTTP |
 | `controller` | Siete controladores, uno por recurso | Traducen HTTP a llamadas de servicio. Nada más |
-| `config` | `CorsConfig` | Infraestructura: ni negocio ni endpoints |
+| `config` | `CorsConfig`, `OpenApiConfig` | Infraestructura: ni negocio ni endpoints |
 
 ### Por qué las entidades no se exponen directamente
 
@@ -374,6 +376,27 @@ psql -U postgres -d fidelidad_db -c "DELETE FROM cliente;"
 ## API REST
 
 Todos los endpoints cuelgan de `http://localhost:8080/api`.
+
+### Documentación interactiva (Swagger UI)
+
+Con el backend levantado, la API se puede explorar y **probar desde el navegador**, sin `curl`
+ni Postman:
+
+<http://localhost:8080/swagger-ui.html>
+
+Cada endpoint trae su descripción, el esquema de los datos que recibe y devuelve, y los códigos
+de estado posibles. El botón **Try it out** ejecuta la petición de verdad contra el backend y
+muestra la respuesta, además del comando `curl` equivalente.
+
+La especificación en bruto, por si se quiere usar con otra herramienta:
+
+```
+http://localhost:8080/v3/api-docs
+```
+
+> La documentación **se genera sola** a partir de los controladores y los DTO cada vez que la
+> aplicación arranca. No es un documento aparte que haya que mantener al día: si cambia un
+> endpoint o se añade un campo, la página cambia con él y no puede quedar desactualizada.
 
 ### Catálogos (alimentan los desplegables)
 
