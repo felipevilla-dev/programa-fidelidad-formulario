@@ -21,8 +21,8 @@ personales y de ubicación, y elige la marca a la que quiere vincularse.
 | País | Lista desplegable (desde la base de datos) |
 | Marca | Lista desplegable (desde la base de datos) |
 
-> Proyecto académico, en construcción por etapas. La Etapa 1 (actual) deja montada
-> la base del proyecto: estructura, configuración y verificación de arranque.
+> Proyecto académico construido por etapas. Las seis etapas están completas: estructura del
+> proyecto, modelo de datos, API REST, formulario en React y documentación de entrega.
 
 ---
 
@@ -269,6 +269,35 @@ mvn spring-boot:run
 # Linux / macOS
 DB_PASSWORD=tu_password mvn spring-boot:run
 ```
+
+#### Alternativa para desarrollo local: el perfil `local`
+
+Exportar la variable en cada terminal nueva es incómodo. Por eso `application.properties`
+deja activo un perfil llamado `local`:
+
+```properties
+spring.profiles.active=local
+```
+
+Con ese perfil activo basta con crear el archivo
+`backend/src/main/resources/application-local.properties` y escribir ahí tus valores. Spring
+Boot lo carga solo, y ya no hay que exportar nada:
+
+```properties
+spring.datasource.password=tu_password
+```
+
+Ese archivo **está en `.gitignore`**: se queda en tu máquina y nunca viaja al repositorio. Es
+el sitio correcto para la contraseña real.
+
+> **Ojo con la precedencia.** Un archivo de perfil pesa **más** que `application.properties`.
+> Si `application-local.properties` define `spring.datasource.password`, la variable
+> `DB_PASSWORD` deja de surtir efecto: lo que queda sobrescrito es precisamente la línea
+> `${DB_PASSWORD:postgres}` que la lee. Para volver a mandar con variables de entorno, borra
+> esa línea del archivo local.
+
+Si el archivo no existe —el caso de quien clona el repositorio—, no pasa nada: el perfil queda
+activo pero vacío y la configuración vuelve a salir de las variables de entorno.
 
 Verificar que responde:
 
@@ -593,8 +622,11 @@ HTTP  ->  controller  ->  service  ->  repository  ->  PostgreSQL
 
 ## Publicar en GitHub
 
-El repositorio ya está inicializado y todo el trabajo está commiteado en `main`. Faltan solo
-los pasos de publicación, que se ejecutan una vez.
+El proyecto ya está publicado en
+<https://github.com/felipevilla-dev/programa-fidelidad-formulario>, sobre la rama `main`.
+
+Los pasos quedan documentados por si hay que repetir la publicación en otro entorno o partiendo
+de un repositorio nuevo.
 
 **1. Crear el repositorio remoto** en <https://github.com/new>, **vacío**: sin README, sin
 `.gitignore` y sin licencia. Si GitHub crea archivos, el primer `push` chocará con el historial
@@ -654,5 +686,5 @@ git grep -n "password" -- backend/src/main/resources/
 - [x] **Etapa 4** — Un controlador REST por recurso y configuración de CORS para el frontend.
 - [x] **Etapa 5** — Formulario en React consumiendo la API, con desplegables en cascada,
       validación en el cliente y mapeo de los errores del backend.
-- [x] **Etapa 6** — Estados de carga, dump de la base de datos, plantilla de configuración
-      y documentación de entrega.
+- [x] **Etapa 6** — Estados de carga, dump de la base de datos, plantilla de configuración,
+      README con las instrucciones de instalación y publicación del repositorio en GitHub.
