@@ -36,6 +36,57 @@
     sans-serif;
 
   --radio: 6px;
+
+  /* El carnet mantiene el verde de la marca en los dos temas: es el objeto de la
+     marca, no parte de la interfaz, y cambiarlo de color lo desdibujaría. */
+  --carnet-fondo: #24473a;
+  --carnet-tinta: #f2f6f4;
+  --carnet-tinta-suave: #9dbcae;
+}
+
+/* --------------------------------------------------------------------------
+   Tema oscuro.
+
+   Se declara dos veces a propósito:
+
+   1. En el @media, para quien nunca toca el botón: se respeta la preferencia
+      del sistema, salvo que haya elegido explícitamente el tema claro.
+   2. En [data-tema="oscuro"], para cuando sí lo ha pulsado. Esa elección manda
+      sobre la del sistema en ambas direcciones.
+
+   La paleta no es un gris cualquiera: los fondos conservan el matiz verde del
+   acento, y el propio acento sube de luminosidad para seguir siendo legible
+   sobre oscuro. Es la misma identidad, no otra.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema='claro']) {
+    color-scheme: dark;
+
+    --fondo: #141816;
+    --tarjeta: #1c2321;
+    --tinta: #e7eae8;
+    --tinta-suave: #98a29d;
+    --linea: #2f3936;
+    --acento: #7cb79b;
+    --acento-claro: #1e2b26;
+    --error: #e79a9c;
+    --error-claro: #2d1c1e;
+  }
+}
+
+:root[data-tema='oscuro'] {
+  color-scheme: dark;
+
+  --fondo: #141816;
+  --tarjeta: #1c2321;
+  --tinta: #e7eae8;
+  --tinta-suave: #98a29d;
+  --linea: #2f3936;
+  --acento: #7cb79b;
+  --acento-claro: #1e2b26;
+  --error: #e79a9c;
+  --error-claro: #2d1c1e;
 }
 
 *,
@@ -66,6 +117,43 @@ body {
 
 .cabecera {
   margin-bottom: var(--e8);
+}
+
+/* El titular y el control de tema comparten linea base: el boton se alinea con
+   la primera linea del titulo, no con su centro, que en titulos de dos lineas
+   lo dejaria flotando a media altura. */
+.cabecera__fila {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--e4);
+}
+
+.boton-tema {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  color: var(--tinta-suave);
+  background-color: transparent;
+  border: 1px solid var(--linea);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.boton-tema:hover {
+  color: var(--acento);
+  border-color: var(--acento);
+  background-color: var(--acento-claro);
+}
+
+.boton-tema:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
 }
 
 .cabecera__titulo {
@@ -384,6 +472,127 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   Confirmacion: el carnet de socio.
+
+   Un programa de fidelidad entrega una tarjeta. Al terminar el registro, la
+   confirmacion ES esa tarjeta y ocupa el lugar del formulario, en vez de ser un
+   aviso mas debajo de los campos.
+   -------------------------------------------------------------------------- */
+
+.confirmacion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.carnet {
+  width: 100%;
+  max-width: 27rem;
+  padding: var(--e8);
+  text-align: left;
+  color: var(--carnet-tinta);
+  background-color: var(--carnet-fondo);
+  /* Radio mayor que el del resto de la interfaz: es un objeto, no un panel. */
+  border-radius: 14px;
+  /* Unica animacion de la interfaz, y responde a una accion concreta: muestra
+     que algo acaba de crearse. */
+  animation: carnet-aparece 0.45s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+/* Sobre el fondo oscuro el verde del carnet queda cerca en luminosidad. Un filo
+   apenas visible lo despega y lo mantiene como objeto. Se usa borde y no sombra
+   porque el resto de la interfaz separa con lineas, nunca con sombras. */
+:root[data-tema='oscuro'] .carnet {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema='claro']) .carnet {
+    border: 1px solid rgba(255, 255, 255, 0.09);
+  }
+}
+
+@keyframes carnet-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.97);
+  }
+}
+
+.carnet__marca {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-size: 1.0625rem;
+  color: var(--carnet-tinta-suave);
+}
+
+.carnet__nombre {
+  margin: var(--e6) 0 var(--e8);
+  font-family: var(--fuente-titulo);
+  font-size: clamp(1.75rem, 1.3rem + 2vw, 2.25rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  /* Equilibra las dos lineas de un nombre largo en vez de dejar una palabra sola. */
+  text-wrap: balance;
+}
+
+.carnet__datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e6);
+  margin: 0;
+  padding-top: var(--e4);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.carnet__datos dt {
+  font-size: 0.75rem;
+  color: var(--carnet-tinta-suave);
+}
+
+.carnet__datos dd {
+  margin: var(--e1) 0 0;
+  font-size: 0.9375rem;
+  /* Cifras de ancho fijo: el numero de socio se lee como un dato, no como texto. */
+  font-variant-numeric: tabular-nums;
+}
+
+.confirmacion__texto {
+  margin: var(--e8) 0 0;
+  max-width: 34ch;
+  color: var(--tinta-suave);
+}
+
+/* --------------------------------------------------------------------------
+   Acabado: transiciones y foco.
+
+   Las transiciones son cortas y solo sobre color: acompanan la accion sin
+   hacerse notar. Nada se mueve de sitio al pasar el raton por encima.
+   -------------------------------------------------------------------------- */
+
+.boton,
+.pestana,
+.campo input,
+.campo select {
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Quien pide menos movimiento no ve ninguno: ni la entrada del carnet ni las
+   transiciones. El sistema operativo ya expresa esa preferencia; respetarla no
+   es opcional para quien sufre mareo con el movimiento en pantalla. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Pantallas estrechas: la rejilla pasa a una sola columna.
    -------------------------------------------------------------------------- */
 
@@ -415,5 +624,13 @@ body {
   .lista__barra {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .carnet {
+    padding: var(--e6);
+  }
+
+  .carnet__datos {
+    gap: var(--e4);
   }
 }
