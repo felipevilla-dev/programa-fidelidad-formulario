@@ -2,12 +2,18 @@ package com.fidelidad.programa.controller;
 
 import java.net.URI;
 
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fidelidad.programa.dto.ClienteRegistroDTO;
@@ -108,6 +114,38 @@ public class ClienteController {
      *
      * @return 200 OK con el cliente
      */
+    /**
+     * Lista los inscritos, de forma paginada y opcionalmente filtrados por marca.
+     *
+     * <p>{@code @PageableDefault} fija lo que se usa cuando la petición no dice nada: 20
+     * registros y los más recientes primero. Sin él, el tamaño por defecto de Spring también
+     * sería 20, pero el orden quedaría indefinido, y una lista paginada sin un orden estable
+     * puede repetir o saltarse filas entre una página y la siguiente.
+     *
+     * <p>{@code @ParameterObject} es lo que hace que Swagger muestre {@code page}, {@code size}
+     * y {@code sort} como tres parámetros normales, en vez de como un objeto interno.
+     *
+     * @param marcaId  filtro opcional por marca
+     * @return 200 OK con la página de inscritos
+     */
+    @Operation(
+            summary = "Listar los inscritos",
+            description = """
+                    Devuelve una página de clientes inscritos, del más reciente al más \
+                    antiguo. Con el parámetro marcaId se limita a una sola marca.
+
+                    La respuesta incluye 'totalElements' y 'totalPages' para poder \
+                    construir la paginación.""")
+    @ApiResponse(responseCode = "200", description = "Página de inscritos")
+    @GetMapping
+    public ResponseEntity<Page<ClienteResponseDTO>> listar(
+            @RequestParam(required = false) Long marcaId,
+            @ParameterObject @PageableDefault(size = 20, sort = "fechaRegistro",
+                    direction = Direction.DESC) Pageable pageable) {
+
+        return ResponseEntity.ok(clienteService.listar(marcaId, pageable));
+    }
+
     @Operation(
             summary = "Consultar un cliente por su id",
             description = "Es el recurso al que apunta la cabecera Location devuelta por el POST.")

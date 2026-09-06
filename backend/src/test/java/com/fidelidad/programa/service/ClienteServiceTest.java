@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +20,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.fidelidad.programa.dto.ClienteRegistroDTO;
 import com.fidelidad.programa.dto.ClienteResponseDTO;
@@ -264,6 +269,68 @@ class ClienteServiceTest {
             assertThatThrownBy(() -> clienteService.registrarCliente(registroCon(DOCUMENTO)))
                     .isInstanceOf(RecursoNoEncontradoException.class)
                     .hasMessageContaining("Marca");
+        }
+    }
+
+    @Nested
+    @DisplayName("Listado de inscritos")
+    class ListadoDeInscritos {
+
+        private Cliente clienteDeEjemplo(String documento, Marca marca) {
+            Cliente cliente = new Cliente();
+            cliente.setId(1L);
+            cliente.setTipoIdentificacion(tipo("CC", "Cédula de Ciudadanía"));
+            cliente.setNumeroIdentificacion(documento);
+            cliente.setNombres("Ana María");
+            cliente.setApellidos("Gómez Ruiz");
+            cliente.setFechaNacimiento(LocalDate.of(1998, 4, 12));
+            cliente.setDireccion("Calle 10 #5-20");
+            cliente.setCiudad(ciudadBogota());
+            cliente.setMarca(marca);
+            return cliente;
+        }
+
+        @Test
+        @DisplayName("sin filtro consulta todas las marcas")
+        void sinFiltroConsultaTodo() {
+            Pageable pagina = PageRequest.of(0, 20);
+            when(clienteRepository.findAll(pagina)).thenReturn(
+                    new PageImpl<>(List.of(clienteDeEjemplo(DOCUMENTO, marca("Chevignon"))),
+                            pagina, 1));
+
+            Page<ClienteResponseDTO> resultado = clienteService.listar(null, pagina);
+
+            assertThat(resultado.getTotalElements()).isEqualTo(1);
+            // El DTO se arma dentro de la transacción, con las relaciones ya resueltas.
+            assertThat(resultado.getContent().get(0).pais().nombre()).isEqualTo("Colombia");
+            verify(clienteRepository, never()).findByMarcaId(any(), any());
+        }
+
+        @Test
+        @DisplayName("con marcaId consulta solo esa marca")
+        void conMarcaConsultaSoloEsaMarca() {
+            Pageable pagina = PageRequest.of(0, 20);
+            when(clienteRepository.findByMarcaId(ID_MARCA, pagina)).thenReturn(
+                    new PageImpl<>(List.of(clienteDeEjemplo(DOCUMENTO, marca("Rifle"))),
+                            pagina, 1));
+
+            Page<ClienteResponseDTO> resultado = clienteService.listar(ID_MARCA, pagina);
+
+            assertThat(resultado.getContent().get(0).marca().nombre()).isEqualTo("Rifle");
+            // El filtro no debe caer en el findAll.
+            verify(clienteRepository, never()).findAll(any(Pageable.class));
+        }
+
+        @Test
+        @DisplayName("devuelve una página vacía cuando no hay inscritos")
+        void devuelvePaginaVaciaSiNoHayNada() {
+            Pageable pagina = PageRequest.of(0, 20);
+            when(clienteRepository.findAll(pagina)).thenReturn(Page.empty(pagina));
+
+            Page<ClienteResponseDTO> resultado = clienteService.listar(null, pagina);
+
+            assertThat(resultado).isEmpty();
+            assertThat(resultado.getTotalElements()).isZero();
         }
     }
 

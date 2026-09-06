@@ -1,6 +1,9 @@
 package com.fidelidad.programa.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,11 +15,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -146,6 +155,55 @@ class ClienteControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"numeroIdentificacion\": "))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("GET del listado devuelve 200 con la página y su total")
+    void getListadoDevuelve200() throws Exception {
+        when(clienteService.listar(isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(respuestaDeEjemplo()),
+                        PageRequest.of(0, 20), 1));
+
+        mockMvc.perform(get("/api/clientes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].nombres").value("Ana María"))
+                // El frontend necesita el total para dibujar la paginación.
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1));
+    }
+
+    @Test
+    @DisplayName("GET del listado traslada el filtro de marca y la paginación al servicio")
+    void getListadoTrasladaLosParametros() throws Exception {
+        when(clienteService.listar(eq(3L), any(Pageable.class)))
+                .thenReturn(Page.empty());
+
+        mockMvc.perform(get("/api/clientes")
+                        .param("marcaId", "3")
+                        .param("page", "2")
+                        .param("size", "5"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<Pageable> capturado = ArgumentCaptor.forClass(Pageable.class);
+        verify(clienteService).listar(eq(3L), capturado.capture());
+        assertThat(capturado.getValue().getPageNumber()).isEqualTo(2);
+        assertThat(capturado.getValue().getPageSize()).isEqualTo(5);
+    }
+
+    @Test
+    @DisplayName("GET del listado sin parámetros usa 20 por página y los más recientes primero")
+    void getListadoUsaLosValoresPorDefecto() throws Exception {
+        when(clienteService.listar(isNull(), any(Pageable.class))).thenReturn(Page.empty());
+
+        mockMvc.perform(get("/api/clientes")).andExpect(status().isOk());
+
+        ArgumentCaptor<Pageable> capturado = ArgumentCaptor.forClass(Pageable.class);
+        verify(clienteService).listar(isNull(), capturado.capture());
+        assertThat(capturado.getValue().getPageSize()).isEqualTo(20);
+        // Sin un orden estable, paginar puede repetir o saltarse filas.
+        assertThat(capturado.getValue().getSort().getOrderFor("fechaRegistro")).isNotNull();
+        assertThat(capturado.getValue().getSort().getOrderFor("fechaRegistro").isDescending())
+                .isTrue();
     }
 
     @Test

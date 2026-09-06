@@ -2,6 +2,8 @@ package com.fidelidad.programa.service;
 
 import java.util.regex.Pattern;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -167,6 +169,33 @@ public class ClienteService {
      * <p>{@code readOnly = true} porque solo lee; la transacción se mantiene abierta para
      * poder navegar la jerarquía geográfica al armar la respuesta.
      */
+    /**
+     * Devuelve una página de inscritos, opcionalmente filtrada por marca.
+     *
+     * <h3>Por qué se pagina y no se devuelve la lista entera</h3>
+     *
+     * <p>Un {@code List<Cliente>} sin límite funciona mientras haya veinte registros y tumba el
+     * servidor cuando haya doscientos mil: la consulta los trae todos a memoria y la respuesta
+     * JSON crece sin tope. Con {@link Pageable}, quien llama pide un tramo concreto
+     * ({@code page}, {@code size}, {@code sort}) y la respuesta incluye además cuántos hay en
+     * total, que es lo que el frontend necesita para dibujar la paginación.
+     *
+     * <p>El {@code map} se hace <b>dentro</b> de esta transacción, y no en el controlador,
+     * porque el proyecto usa {@code spring.jpa.open-in-view=false}: fuera de aquí la sesión de
+     * Hibernate ya está cerrada y recorrer las relaciones fallaría.
+     *
+     * @param marcaId  filtro opcional; si es {@code null} devuelve todas las marcas
+     * @param pageable página, tamaño y orden solicitados
+     */
+    @Transactional(readOnly = true)
+    public Page<ClienteResponseDTO> listar(Long marcaId, Pageable pageable) {
+        Page<Cliente> pagina = (marcaId == null)
+                ? clienteRepository.findAll(pageable)
+                : clienteRepository.findByMarcaId(marcaId, pageable);
+
+        return pagina.map(this::toResponseDTO);
+    }
+
     @Transactional(readOnly = true)
     public ClienteResponseDTO buscarPorId(Long id) {
         Cliente cliente = clienteRepository.findById(id)
