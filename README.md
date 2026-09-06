@@ -606,6 +606,42 @@ HTTP  ->  controller  ->  service  ->  repository  ->  PostgreSQL
 
 ---
 
+## Pruebas automatizadas
+
+```bash
+cd backend
+mvn test
+```
+
+**No hace falta PostgreSQL para ejecutarlas.** Las pruebas corren sobre el perfil `test`, que
+sustituye la base por **H2 en memoria**: se crea un esquema limpio al empezar y se destruye al
+terminar. Por eso `mvn package` funciona en una máquina recién clonada, sin configurar nada.
+
+Son 23 pruebas repartidas en tres niveles, cada uno con un propósito distinto:
+
+| Clase | Tipo | Qué comprueba |
+|---|---|---|
+| `ClienteServiceTest` | Unitaria, con Mockito | Las reglas de negocio, sin base de datos |
+| `ClienteControllerTest` | `@WebMvcTest` | La traducción entre HTTP y el servicio: 201, 400, 404, 409 |
+| `ClienteRepositoryTest` | `@DataJpaTest` sobre H2 | Las consultas derivadas y la restricción de unicidad |
+| `ProgramaFidelidadApplicationTests` | `@SpringBootTest` | Que el contexto de Spring arranca completo |
+
+### Qué reglas quedan protegidas
+
+Las pruebas cubren las decisiones de negocio que no son evidentes leyendo el código:
+
+- Un documento **no puede repetirse dentro de la misma marca**, pero **sí puede aparecer en
+  varias marcas** del grupo. Esta es la razón de que la restricción sea
+  `(tipo, número, marca)` y no solo `(tipo, número)`.
+- El **pasaporte admite letras**; la cédula y el NIT solo dígitos. El mensaje de error usa el
+  código corto del documento (`NIT`), no su nombre completo.
+- La restricción de unicidad **existe en la base**, no solo en el servicio: es la última
+  defensa si dos peticiones simultáneas superan a la vez la comprobación previa.
+- `findByTipoIdentificacionAndNumeroIdentificacion` devuelve `List` y no `Optional`,
+  precisamente porque una persona puede estar inscrita en varias marcas.
+
+---
+
 ## Comandos útiles
 
 | Acción | Comando |
