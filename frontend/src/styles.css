@@ -217,6 +217,172 @@ body {
   cursor: not-allowed;
 }
 
+.boton--secundario {
+  margin-top: 0;
+  padding: var(--e2) var(--e4);
+  font-size: 0.875rem;
+  color: var(--acento);
+  background-color: transparent;
+}
+
+.boton--secundario:hover:not(:disabled) {
+  color: var(--tarjeta);
+  background-color: var(--acento);
+  border-color: var(--acento);
+}
+
+/* --------------------------------------------------------------------------
+   Pestanas: alternan entre el formulario y la lista de inscritos.
+   -------------------------------------------------------------------------- */
+
+.pestanas {
+  display: flex;
+  gap: var(--e1);
+  margin-bottom: var(--e6);
+  border-bottom: 1px solid var(--linea);
+}
+
+.pestana {
+  padding: var(--e3) var(--e4);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--tinta-suave);
+  background: none;
+  border: none;
+  /* Reserva el grosor del subrayado activo, para que el texto no salte al cambiar. */
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.pestana:hover {
+  color: var(--tinta);
+}
+
+.pestana:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: -2px;
+}
+
+.pestana--activa {
+  font-weight: 500;
+  color: var(--acento);
+  border-bottom-color: var(--acento);
+}
+
+/* --------------------------------------------------------------------------
+   Lista de inscritos.
+   -------------------------------------------------------------------------- */
+
+.lista {
+  padding: var(--e6);
+  background-color: var(--tarjeta);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+}
+
+.lista__barra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e4);
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: var(--e6);
+}
+
+.lista__barra .campo {
+  min-width: 14rem;
+}
+
+.lista__total {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--tinta-suave);
+}
+
+.lista__vacia {
+  margin: 0;
+  padding: var(--e8) 0;
+  text-align: center;
+  color: var(--tinta-suave);
+}
+
+/* El contenedor desplaza la tabla en horizontal en pantallas estrechas,
+   en vez de dejar que se desborde la pagina entera. */
+.tabla__contenedor {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.tabla__titulo {
+  margin-bottom: var(--e3);
+  text-align: left;
+  font-size: 0.8125rem;
+  color: var(--tinta-suave);
+}
+
+.tabla th {
+  padding: var(--e2) var(--e3);
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tinta-suave);
+  border-bottom: 1px solid var(--linea);
+  white-space: nowrap;
+}
+
+.tabla td {
+  padding: var(--e3);
+  border-bottom: 1px solid var(--linea);
+  vertical-align: top;
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla tbody tr:hover {
+  background-color: var(--acento-claro);
+}
+
+/* El codigo del documento (CC, PA, NIT) como etiqueta, para separarlo del numero. */
+.tabla__tipo {
+  display: inline-block;
+  padding: 0 var(--e1);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--acento);
+  background-color: var(--acento-claro);
+  border-radius: 3px;
+}
+
+.tabla__secundario {
+  color: var(--tinta-suave);
+}
+
+/* --------------------------------------------------------------------------
+   Paginacion.
+   -------------------------------------------------------------------------- */
+
+.paginacion {
+  display: flex;
+  gap: var(--e4);
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--e6);
+}
+
+.paginacion__estado {
+  font-size: 0.875rem;
+  color: var(--tinta-suave);
+}
+
 /* --------------------------------------------------------------------------
    Pantallas estrechas: la rejilla pasa a una sola columna.
    -------------------------------------------------------------------------- */
@@ -236,5 +402,18 @@ body {
 
   .boton {
     width: 100%;
+  }
+
+  .boton--secundario {
+    width: auto;
+  }
+
+  .lista {
+    padding: var(--e4);
+  }
+
+  .lista__barra {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

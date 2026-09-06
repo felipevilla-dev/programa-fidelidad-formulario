@@ -68,3 +68,29 @@ export async function registrarCliente(datos) {
   const { data } = await axiosClient.post('/clientes', datos)
   return data
 }
+
+/**
+ * GET /api/clientes?marcaId=...&page=...&size=... -> página de inscritos
+ *
+ * La respuesta no es una lista sino un objeto de página de Spring Data:
+ *
+ *   {
+ *     content: [ClienteResponseDTO, ...],  // los registros de ESTA página
+ *     number: 0,                           // página actual, empezando en 0
+ *     totalPages: 3,
+ *     totalElements: 47                    // cuántos hay en total, no en la página
+ *   }
+ *
+ * `marcaId` se omite cuando viene vacío para que el backend devuelva todas las
+ * marcas: axios descarta los parámetros `undefined` al construir la URL.
+ */
+export async function listarClientes({ marcaId, pagina = 0, tamano = 20 } = {}) {
+  const { data } = await axiosClient.get('/clientes', {
+    params: {
+      marcaId: marcaId || undefined,
+      page: pagina,
+      size: tamano,
+    },
+  })
+  return data
+}
