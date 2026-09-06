@@ -231,6 +231,15 @@ Dos detalles del script:
 
 ## Puesta en marcha
 
+> **Desde dónde se ejecuta cada comando.** El backend y el frontend son dos proyectos
+> independientes dentro del repositorio, cada uno con sus propias dependencias. En la raíz no
+> hay nada que ejecutar: los comandos de Maven se lanzan desde `backend/` y los de npm desde
+> `frontend/`. Cada bloque de abajo empieza con el `cd` que le corresponde, y las rutas se
+> cuentan desde la raíz del repositorio.
+>
+> Si te equivocas de carpeta no romperás nada: npm dirá que no encuentra `package.json` y
+> Maven, que no encuentra el plugin `spring-boot`. En ambos casos la solución es el `cd`.
+
 ### 1. Base de datos
 
 Primero se crea la base, que debe existir antes de arrancar el backend:
@@ -294,13 +303,13 @@ mvn spring-boot:run
 Si la contraseña de tu usuario de PostgreSQL no es `postgres`, defínela antes de arrancar:
 
 ```powershell
-# Windows (PowerShell)
+# Windows (PowerShell), desde backend/
 $env:DB_PASSWORD = "tu_password"
 mvn spring-boot:run
 ```
 
 ```bash
-# Linux / macOS
+# Linux / macOS, desde backend/
 DB_PASSWORD=tu_password mvn spring-boot:run
 ```
 
