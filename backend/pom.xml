@@ -75,6 +75,17 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!--
+            Base de datos en memoria, solo para las pruebas. Permite que
+            "mvn test" funcione en cualquier maquina sin PostgreSQL instalado:
+            cada ejecucion crea un esquema limpio y lo destruye al terminar.
+        -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
